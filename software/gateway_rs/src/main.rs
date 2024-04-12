@@ -1,6 +1,7 @@
 use std::io::BufRead;
 use std::io::BufReader;
 use std::time::Duration;
+use paho_mqtt as mqtt;
 
 mod ukhn_to_influx;
 
@@ -58,6 +59,26 @@ fn upload_to_influx(line: &str) {
 }
 
 fn main() {
+    // Create a client & define connect options
+    let cli = mqtt::Client::new("tcp://rotterdam:1883").unwrap();
+
+    let conn_opts = mqtt::ConnectOptionsBuilder::new()
+        .keep_alive_interval(Duration::from_secs(20))
+        .clean_session(true)
+        .finalize();
+
+    // Connect and wait for it to complete or fail
+    cli.connect(conn_opts).unwrap();
+
+    // Create a message and publish it
+    let msg = mqtt::Message::new("test", "Hello world!", 2);
+    cli.publish(msg).unwrap();
+
+    // Disconnect from the broker
+    cli.disconnect(None).unwrap();
+
+    return;
+
     let path = "/dev/ttyACM0";
     println!("Opening serial port");
     let port = open_serial_port(path);
